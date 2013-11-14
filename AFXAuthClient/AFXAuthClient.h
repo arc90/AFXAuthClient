@@ -45,7 +45,7 @@ extern NSString *const AFXAuthModeReverse;
 ///-----------------------------------
 
 /**
-
+ 
  */
 @property (strong, nonatomic) AFXAuthToken *token;
 
@@ -54,7 +54,7 @@ extern NSString *const AFXAuthModeReverse;
 ///---------------------
 
 /**
-
+ 
  */
 - (id)initWithBaseURL:(NSURL *)url key:(NSString *)key secret:(NSString *)secret;
 
@@ -74,7 +74,7 @@ extern NSString *const AFXAuthModeReverse;
                                        failure:(void (^)(NSError *error))failure;
 
 /**
- Authorize user using any x_auth_mode 
+ Authorize user using any x_auth_mode
  */
 - (void)authorizeUsingXAuthWithAccessTokenPath:(NSString *)accessTokenPath
                                   accessMethod:(NSString *)accessMethod
@@ -90,30 +90,29 @@ extern NSString *const AFXAuthModeReverse;
 #pragma mark -
 
 /**
-
+ 
  */
 @interface AFXAuthToken : NSObject <NSCoding>
 
 /**
-
+ 
  */
 @property (readonly, nonatomic, copy) NSString *key;
 
 /**
-
+ 
  */
 @property (readonly, nonatomic, copy) NSString *secret;
 
 /**
-
+ 
  */
 - (id)initWithQueryString:(NSString *)queryString;
 
 /**
-
+ 
  */
-- (id)initWithKey:(NSString *)key
-           secret:(NSString *)secret;
+- (id)initWithKey:(NSString *)key secret:(NSString *)secret;
 
 #pragma mark - NSCoding
 

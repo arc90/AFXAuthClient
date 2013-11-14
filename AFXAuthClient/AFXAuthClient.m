@@ -38,8 +38,7 @@ NSString *const AFXAuthModeClient = @"client_auth";
 NSString *const AFXAuthModeAnon = @"anon_auth";
 NSString *const AFXAuthModeReverse = @"reverse_auth";
 
-static NSString * AFEncodeBase64WithData(NSData *data)
-{
+static NSString * AFEncodeBase64WithData(NSData *data) {
     NSUInteger length = [data length];
     NSMutableData *mutableData = [NSMutableData dataWithLength:((length + 2) / 3) * 4];
     
@@ -67,8 +66,7 @@ static NSString * AFEncodeBase64WithData(NSData *data)
     return [[NSString alloc] initWithData:mutableData encoding:NSASCIIStringEncoding];
 }
 
-static NSString * RFC3986EscapedStringWithEncoding(NSString *string, NSStringEncoding encoding)
-{
+static NSString * RFC3986EscapedStringWithEncoding(NSString *string, NSStringEncoding encoding) {
 	// Validate the input string to ensure we dont return nil.
 	string = string ?: @"";
 	
@@ -81,8 +79,7 @@ static NSString * RFC3986EscapedStringWithEncoding(NSString *string, NSStringEnc
 	return (__bridge_transfer  NSString *)CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, (__bridge CFStringRef)string, (__bridge CFStringRef)kAFCharactersToLeaveUnescaped, (__bridge CFStringRef)kAFCharactersToBeEscaped, CFStringConvertNSStringEncodingToEncoding(encoding));
 }
 
-static NSDictionary * AFParametersFromQueryString(NSString *queryString)
-{
+static NSDictionary * AFParametersFromQueryString(NSString *queryString) {
     NSMutableDictionary *parameters = [NSMutableDictionary dictionary];
     if (queryString) {
         NSScanner *parameterScanner = [[NSScanner alloc] initWithString:queryString];
@@ -107,8 +104,7 @@ static NSDictionary * AFParametersFromQueryString(NSString *queryString)
     return parameters;
 }
 
-static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *consumerSecret, NSString *tokenSecret)
-{
+static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *consumerSecret, NSString *tokenSecret) {
     NSString *secret = tokenSecret ? tokenSecret : @"";
     NSString *secretString = [NSString stringWithFormat:@"%@&%@", consumerSecret, secret];
     NSData *secretData = [secretString dataUsingEncoding:NSUTF8StringEncoding];
@@ -134,8 +130,7 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
 
 @implementation AFXAuthClient
 
-- (id)initWithBaseURL:(NSURL *)url key:(NSString *)key secret:(NSString *)secret
-{
+- (id)initWithBaseURL:(NSURL *)url key:(NSString *)key secret:(NSString *)secret {
     self = [super initWithBaseURL:url];
     if (self) {
         _consumerKey = key;
@@ -144,8 +139,7 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
     return self;
 }
 
-- (NSString *)baseStringWithRequest:(NSURLRequest *)request parameters:(NSDictionary *)parameters
-{
+- (NSString *)baseStringWithRequest:(NSURLRequest *)request parameters:(NSDictionary *)parameters {
     NSString *oauth_consumer_key = RFC3986EscapedStringWithEncoding(self.consumerKey, NSUTF8StringEncoding);
     NSString *oauth_nonce = RFC3986EscapedStringWithEncoding(_nonce, NSUTF8StringEncoding);
     NSString *oauth_signature_method = RFC3986EscapedStringWithEncoding(@"HMAC-SHA1", NSUTF8StringEncoding);
@@ -174,8 +168,7 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
     return baseString;
 }
 
-- (NSString *)authorizationHeaderForParameters:(NSDictionary *)parameters
-{
+- (NSString *)authorizationHeaderForParameters:(NSDictionary *)parameters {
     static NSString * const kAFOAuth1AuthorizationFormatString = @"OAuth %@";
     
     if (!parameters) {
@@ -197,8 +190,7 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
                                       username:(NSString *)username
                                       password:(NSString *)password
                                        success:(void (^)(AFXAuthToken *accessToken))success
-                                       failure:(void (^)(NSError *error))failure
-{
+                                       failure:(void (^)(NSError *error))failure {
     [self authorizeUsingXAuthWithAccessTokenPath:accessTokenPath accessMethod:accessMethod mode:AFXAuthModeClient username:username password:password success:success failure:failure];
 }
 
@@ -208,14 +200,13 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
                                      username:(NSString *)username
                                      password:(NSString *)password
                                       success:(void (^)(AFXAuthToken *))success
-                                      failure:(void (^)(NSError *))failure
-{
+                                      failure:(void (^)(NSError *))failure {
     _username = username;
     _password = password;
     
     NSDictionary *xAuthParametersForHeader = @{@"x_auth_mode": mode,
-                                 @"x_auth_password": self.password,
-                                 @"x_auth_username": self.username};
+                                               @"x_auth_password": self.password,
+                                               @"x_auth_username": self.username};
     
     NSMutableURLRequest *request = [self requestWithMethod:accessMethod path:accessTokenPath parameters:xAuthParametersForHeader];
     
@@ -232,17 +223,20 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
     [self enqueueHTTPRequestOperation:operation];
 }
 
-- (NSMutableDictionary *)authorizationHeaderWithRequest:(NSURLRequest *)request parameters:(NSDictionary *)parameters
-{
+- (NSMutableDictionary *)authorizationHeaderWithRequest:(NSURLRequest *)request parameters:(NSDictionary *)parameters {
     NSMutableDictionary *authorizationHeader = [[NSMutableDictionary alloc] initWithDictionary:@{@"oauth_nonce": _nonce,
                                                                                                  @"oauth_signature_method": @"HMAC-SHA1",
                                                                                                  @"oauth_timestamp": _timestamp,
                                                                                                  @"oauth_consumer_key": self.consumerKey,
                                                                                                  @"oauth_signature": AFHMACSHA1Signature([self baseStringWithRequest:request parameters:parameters], _consumerSecret, _token.secret),
-                                                                                                 @"oauth_version": @"1.0",
-                                                                                                 @"x_auth_mode": parameters[@"mode"],
-                                                                                                 @"x_auth_password": parameters[@"x_auth_password"],
-                                                                                                 @"x_auth_username": parameters[@"x_auth_username"]}];
+                                                                                                 @"oauth_version": @"1.0"}];
+    
+    if (parameters && [[parameters allKeys] containsObject:@"x_auth_mode"]) {
+        [authorizationHeader addEntriesFromDictionary:@{@"x_auth_mode": parameters[@"x_auth_mode"],
+                                                        @"x_auth_password": parameters[@"x_auth_password"],
+                                                        @"x_auth_username": parameters[@"x_auth_username"]}];
+    }
+    
     if (self.token)
         [authorizationHeader setObject:RFC3986EscapedStringWithEncoding(self.token.key, NSUTF8StringEncoding) forKey:@"oauth_token"];
     
@@ -251,14 +245,11 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
 
 #pragma mark - AFHTTPClient
 
-- (NSMutableURLRequest *)requestWithMethod:(NSString *)method
-                                      path:(NSString *)path
-                                parameters:(NSDictionary *)parameters
-{
+- (NSMutableURLRequest *)requestWithMethod:(NSString *)method path:(NSString *)path parameters:(NSDictionary *)parameters {
     _nonce = [NSString stringWithFormat:@"%d", arc4random()];
     _timestamp = [NSString stringWithFormat:@"%d", (int)ceil((float)[[NSDate date] timeIntervalSince1970])];
     
-    NSMutableURLRequest *request = [super requestWithMethod:method path:path parameters:nil];
+    NSMutableURLRequest *request = [super requestWithMethod:method path:path parameters:parameters];
     NSMutableDictionary *authorizationHeader = [self authorizationHeaderWithRequest:request parameters:parameters];
     
     [request setValue:[self authorizationHeaderForParameters:authorizationHeader] forHTTPHeaderField:@"Authorization"];
@@ -266,8 +257,7 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
     return request;
 }
 
-- (NSMutableURLRequest *)multipartFormRequestWithMethod:(NSString *)method path:(NSString *)path parameters:(NSDictionary *)parameters constructingBodyWithBlock:(void (^)(id<AFMultipartFormData>))block
-{
+- (NSMutableURLRequest *)multipartFormRequestWithMethod:(NSString *)method path:(NSString *)path parameters:(NSDictionary *)parameters constructingBodyWithBlock:(void (^)(id<AFMultipartFormData>))block {
     _nonce = [NSString stringWithFormat:@"%d", arc4random()];
     _timestamp = [NSString stringWithFormat:@"%d", (int)ceil((float)[[NSDate date] timeIntervalSince1970])];
     
@@ -292,8 +282,7 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
 @synthesize key = _key;
 @synthesize secret = _secret;
 
-- (id)initWithQueryString:(NSString *)queryString
-{
+- (id)initWithQueryString:(NSString *)queryString {
     if (!queryString || [queryString length] == 0) {
         return nil;
     }
@@ -302,9 +291,7 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
     return [self initWithKey:[attributes objectForKey:@"oauth_token"] secret:[attributes objectForKey:@"oauth_token_secret"]];
 }
 
-- (id)initWithKey:(NSString *)key
-           secret:(NSString *)secret
-{
+- (id)initWithKey:(NSString *)key secret:(NSString *)secret {
     NSParameterAssert(key);
     NSParameterAssert(secret);
     
@@ -321,14 +308,12 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
 
 #pragma mark - NSCoding
 
-- (void)encodeWithCoder:(NSCoder *)coder
-{
+- (void)encodeWithCoder:(NSCoder *)coder {
     [coder encodeObject:self.key forKey:@"AFXAuthClientKey"];
     [coder encodeObject:self.secret forKey:@"AFXAuthClientSecret"];
 }
 
-- (id)initWithCoder:(NSCoder *)coder
-{
+- (id)initWithCoder:(NSCoder *)coder {
     self = [super init];
     
     if (self) {
