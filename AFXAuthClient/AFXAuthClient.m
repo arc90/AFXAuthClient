@@ -115,6 +115,12 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
     return AFEncodeBase64WithData(signatureData);
 }
 
+static inline NSString * PlainTextSignature(NSString *consumerSecret, NSString *tokenSecret) {
+    NSString *secret = tokenSecret ? tokenSecret : @"";
+    NSString *secretString = [NSString stringWithFormat:@"%@&%@", consumerSecret, secret];
+    return secretString;
+}
+
 #pragma mark -
 
 @interface AFXAuthClient ()
@@ -224,11 +230,11 @@ static inline NSString * AFHMACSHA1Signature(NSString *baseString, NSString *con
 }
 
 - (NSMutableDictionary *)authorizationHeaderWithRequest:(NSURLRequest *)request parameters:(NSDictionary *)parameters {
-    NSMutableDictionary *authorizationHeader = [[NSMutableDictionary alloc] initWithDictionary:@{@"oauth_nonce": _nonce,
-                                                                                                 @"oauth_signature_method": @"HMAC-SHA1",
+    NSMutableDictionary *authorizationHeader = [[NSMutableDictionary alloc] initWithDictionary:@{@"oauth_nonce": [NSString stringWithFormat:@"%@%@", _nonce, request],
+                                                                                                 @"oauth_signature_method": @"PLAINTEXT",
                                                                                                  @"oauth_timestamp": _timestamp,
                                                                                                  @"oauth_consumer_key": self.consumerKey,
-                                                                                                 @"oauth_signature": AFHMACSHA1Signature([self baseStringWithRequest:request parameters:parameters], _consumerSecret, _token.secret),
+                                                                                                 @"oauth_signature": PlainTextSignature(_consumerSecret, _token.secret),
                                                                                                  @"oauth_version": @"1.0"}];
     
     if (parameters && [[parameters allKeys] containsObject:@"x_auth_mode"]) {
